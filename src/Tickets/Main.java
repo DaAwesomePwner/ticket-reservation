@@ -45,7 +45,6 @@ public class Main {
             scanner.nextInt();
             container.add(scanner.nextLine().trim());
         }
-        System.out.println(container);
 
         //create a new matrix
         seating = new String[container.size()][container.get(0).replaceAll("\\s+", "").length()];
@@ -59,11 +58,6 @@ public class Main {
             currentRow++;
         }
 
-//        System.out.print("[");
-//        for (int i = 0; i < seating[0].length; i++) {
-//            System.out.print(seating[0][i] + ", ");
-//        }
-//        System.out.println("]");
     }
 
     //asking the user for what they want to do
@@ -86,7 +80,6 @@ public class Main {
     public static void reserveSeats() {
         //print letters for seating chart
         String line = " ";
-        System.out.println(seating[0].length);
         for (int x = 0; x < seating[0].length; x++) {
             line = line + " " + (char) (x + 65);
         }
@@ -110,11 +103,12 @@ public class Main {
         while (true){
             System.out.println("Which row number did you want?");
             rowNum = scanner.nextInt();
-            if (rowNum - 1 <= seating.length && rowNum >= 0)
+            if (rowNum - 1 <= seating.length && rowNum > 0)
                 break;
             else
                 System.out.println("Error: Invalid row number");
         }
+        rowNum--;
 
         while (true){
             System.out.println("Which seat letter did you want?");
@@ -128,7 +122,7 @@ public class Main {
         while (true){
             System.out.println("How many adult tickets?");
             adultTicket = scanner.nextInt();
-            if (adultTicket > 0)
+            if (adultTicket >= 0)
                 break;
             else
                 System.out.println("Error: Invalid amount of tickets");
@@ -137,7 +131,7 @@ public class Main {
         while (true){
             System.out.println("How many child tickets?");
             childTicket = scanner.nextInt();
-            if (childTicket > 0)
+            if (childTicket >= 0)
                 break;
             else
                 System.out.println("Error: Invalid amount of tickets");
@@ -146,7 +140,7 @@ public class Main {
         while (true){
             System.out.println("How many senior tickets?");
             seniorTicket = scanner.nextInt();
-            if (seniorTicket > 0)
+            if (seniorTicket >= 0)
                 break;
             else
                 System.out.println("Error: Invalid amount of tickets");
@@ -154,33 +148,80 @@ public class Main {
         totalTickets = childTicket + adultTicket + seniorTicket;
         String[][] tempSeating = new String[seating.length][seating[0].length];
         Boolean invalid = false;
+
         for (int i = 0; i < seating.length; i++)
             tempSeating[i] = Arrays.copyOf(seating[i], seating[i].length);
 
-
         //check if seat(s) is/are valid
         for (int i = 0; i < totalTickets; i++) {
-            if (seating[rowNum + i][seatLetter.toCharArray()[0] + i] != "#") {
-                tempSeating[rowNum + i][seatLetter.toCharArray()[0] + i] = "#";
+
+            if (!seating[rowNum + i][seatLetter.toCharArray()[0] - 65 + i].equals("#")) {
+                tempSeating[rowNum + i][seatLetter.toCharArray()[0] - 65 + i] = "#";
             }
             else
                 invalid = true;
         }
-        if (invalid == true)
-            invalid();
+        if (invalid)
+            invalid(totalTickets, rowNum);
         else {
-            System.out.println("Tickets confirmed!");
+            System.out.println("Tickets confirmed!\n\n");
             seating = tempSeating;
         }
         beginPrompts();
 
     }
 
-    public static void invalid() {
+    public static void invalid(int totalTickets, int rowNumber) {
+        //inform user of issue
+        System.out.println("Sorry the seat(s) you requested is not available. Would you like the best available seats instead?");
+
+        //print best available seat instead
+        int bestSeat = -1;
+        int distance = 99;
+
+        for (int i = 0; i < seating.length - totalTickets; i++) {
+            if (!seating[rowNumber][i].equals("#")) {
+                for (int x = 0; x < totalTickets; x++) {
+                    if (!seating[rowNumber][x + i].equals("#")) {
+                        if (x == totalTickets - 1) {
+                            if (Math.abs(seating.length / 2 - i) < distance) {
+                                distance = Math.abs(seating.length / 2 - i);
+                                bestSeat = i;
+                            }
+                            if (Math.abs(seating.length / 2 + i) < distance) {
+                                distance = Math.abs(seating.length / 2 + i);
+                                bestSeat = i;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (bestSeat == -1) {
+            System.out.println("Sorry, no best seat was found!");
+        }
+        else {
+            String output = "Best available seat(s):\n";
+            for (int i = 0; i < totalTickets; i++) {
+                output += (rowNumber + 1) + "" + (char)(bestSeat + i + 65) + "\n";
+            }
+            System.out.println(output);
+        }
+
 
     }
 
     public static void exit() {
+        //TODO write file output here
+        System.exit(0);
+    }
 
+    public static String printArray(String[][] array) {
+        String output = "[";
+        for (int x = 0; x < array.length; x++)
+            for (int y = 0; y < array[x].length; y++)
+                output += array[x][y] + ", ";
+        output += "]";
+        return output;
     }
 }
